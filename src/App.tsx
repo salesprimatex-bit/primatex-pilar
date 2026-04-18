@@ -38,6 +38,24 @@ export default function App() {
 
   const totalSteps = supportingKeywords.length + 3; // Intro + 10 Keywords + FAQ + Conclusion
 
+  useEffect(() => {
+  const params = new URLSearchParams(window.location.search);
+
+  const frasa = params.get('frasa') || '';
+  const anchorText = params.get('anchor_text') || '';
+  const url = params.get('url') || '';
+
+  setB3(frasa);
+  setB2(anchorText);
+  setR2(url);
+
+  const newKeywords = [...Array(10)].map((_, i) => {
+    return params.get(`anchor${i + 1}`) || '';
+  });
+
+  setSupportingKeywords(newKeywords);
+}, []);
+
   const handleSupportKeywordChange = (index: number, value: string) => {
     const newKeywords = [...supportingKeywords];
     newKeywords[index] = value;
