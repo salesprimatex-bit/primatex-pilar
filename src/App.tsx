@@ -114,7 +114,7 @@ export default function App() {
         <div className="p-8 pb-10">
           <div className="flex items-center gap-3 font-bold text-lg tracking-tight mb-10">
             <div className="w-3.5 h-3.5 bg-brand-accent rounded-[2px]" />
-            PRIME EDITOR v2
+            Primatex Pilar
           </div>
 
           <div className="space-y-10">
@@ -208,8 +208,8 @@ export default function App() {
         <div className="mt-auto p-8 border-t border-white/5 bg-black/20">
             <div className="p-4 bg-white/5 border border-dashed border-white/10 rounded-lg text-[11px] leading-relaxed text-slate-400">
                <strong className="text-white block mb-1">Target Penulisan:</strong>
-               Target: 5.500 Kata<br />
-               Est. Baca: 22 Menit
+               Target: 4.000 Kata<br />
+               Est. Baca: 16 Menit
             </div>
         </div>
       </aside>
@@ -329,7 +329,7 @@ export default function App() {
                    <span className="text-3xl font-extrabold text-slate-800">
                       {articleContent ? Math.round(articleContent.split(' ').length) : '0'}
                    </span>
-                   <span className="text-sm font-medium text-slate-400">/ 5,500</span>
+                   <span className="text-sm font-medium text-slate-400">/ 4,000</span>
                 </div>
                 <div className="h-2 bg-slate-100 rounded-full overflow-hidden mt-2">
                    <motion.div 

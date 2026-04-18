@@ -44,7 +44,7 @@ export const generateArticleSection = async (
 
     KETENTUAN TEKNIS:
     - Jika ini adalah pembahasan H2, buat 3-4 subjudul H3 yang membahas fungsi, manfaat, spesifikasi teknis, aplikasi proyek, keunggulan, dan tips pemilihan.
-    - Minimal panjang bagian ini adalah 500-600 kata untuk memastikan total artikel mencapai target 5.000 kata.
+    - Minimal panjang bagian ini adalah 300-400 kata untuk memastikan total artikel mencapai target minimal 4.000 kata.
     - Berikan insight praktis, contoh kasus lapangan, atau kesalahan umum.
     - Gunakan alur problem-solution.
     - JANGAN melakukan keyword stuffing.
