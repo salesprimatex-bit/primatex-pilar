@@ -1,0 +1,52 @@
+@import "tailwindcss";
+
+@theme {
+  --color-brand-bg: #f4f6f9;
+  --color-brand-sidebar: #1e293b;
+  --color-brand-accent: #2563eb;
+  --color-brand-border: #cbd5e1;
+  --color-brand-text-main: #0f172a;
+  --color-brand-text-muted: #64748b;
+  --color-brand-success: #10b981;
+  --font-sans: 'Helvetica Neue', Arial, sans-serif;
+}
+
+@layer base {
+  body {
+    @apply bg-brand-bg text-brand-text-main font-sans;
+  }
+}
+
+.markdown-body {
+  @apply text-slate-800 antialiased;
+}
+.markdown-body h1 { 
+  @apply text-4xl font-extrabold mb-10 text-slate-900 leading-tight tracking-tight; 
+}
+.markdown-body h2 { 
+  @apply text-2xl font-bold mt-16 mb-6 text-slate-800 leading-snug border-none; 
+}
+.markdown-body h3 { 
+  @apply text-xl font-bold mt-10 mb-4 text-slate-700 leading-snug; 
+}
+.markdown-body h4 { 
+  @apply text-lg font-bold mt-8 mb-3 text-slate-700 leading-snug; 
+}
+.markdown-body p { 
+  @apply text-[17px] leading-[1.85] mb-6 text-slate-600 font-normal; 
+}
+.markdown-body ul, .markdown-body ol { 
+  @apply mb-8 pl-8 space-y-3; 
+}
+.markdown-body li { 
+  @apply text-[17px] text-slate-600; 
+}
+.markdown-body blockquote { 
+  @apply border-l-8 border-brand-accent/20 pl-6 italic my-10 text-slate-700 bg-slate-50/50 py-6 rounded-r-lg text-lg; 
+}
+.markdown-body a { 
+  @apply text-brand-accent font-semibold underline decoration-1 underline-offset-4 hover:decoration-2 transition-all; 
+}
+.markdown-body hr {
+  @apply my-16 border-slate-100;
+}
