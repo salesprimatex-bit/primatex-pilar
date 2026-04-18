@@ -19,7 +19,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import ReactMarkdown from 'react-markdown';
 import { marked } from 'marked';
 import { cn } from './lib/utils';
-import { generateArticleSection, type ArticleInput } from './services/geminiService';
+import { generateArticleSection, generateSEOData, type ArticleInput } from './services/geminiService';
 
 export default function App() {
   const [b2, setB2] = useState('');
@@ -31,7 +31,8 @@ export default function App() {
   const [currentStep, setCurrentStep] = useState(0);
   const [generationProgress, setGenerationProgress] = useState(0);
   const [articleContent, setArticleContent] = useState('');
-  const [viewMode, setViewMode] = useState<'preview' | 'html'>('preview');
+  const [seoData, setSeoData] = useState('');
+  const [viewMode, setViewMode] = useState<'preview' | 'html' | 'seo'>('preview');
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
 
@@ -44,7 +45,12 @@ export default function App() {
   };
 
   const handleCopy = () => {
-    const textToCopy = viewMode === 'html' ? String(marked.parse(articleContent)) : articleContent;
+    let textToCopy = articleContent;
+    if (viewMode === 'html') {
+      textToCopy = String(marked.parse(articleContent));
+    } else if (viewMode === 'seo') {
+      textToCopy = seoData;
+    }
     navigator.clipboard.writeText(textToCopy);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
@@ -59,6 +65,7 @@ export default function App() {
     setError(null);
     setIsGenerating(true);
     setArticleContent('');
+    setSeoData('');
     setCurrentStep(0);
     setGenerationProgress(0);
 
@@ -98,6 +105,12 @@ export default function App() {
       const conclusion = await generateArticleSection(input, "Kesimpulan", "Ringkasan dan Solusi Produk Primatex", false, false, true);
       fullContent += conclusion + "\n\n";
       setArticleContent(fullContent);
+      setGenerationProgress(95);
+
+      // Step 14: SEO Data
+      setCurrentStep(totalSteps + 1);
+      const seo = await generateSEOData(fullContent, b3);
+      setSeoData(seo);
       setGenerationProgress(100);
 
     } catch (err: any) {
@@ -240,16 +253,16 @@ export default function App() {
                   )}
                >
                  <FileSearch className="w-3 h-3" />
-                 View HTML
+                 {viewMode === 'preview' ? 'View Source (HTML)' : 'View Visual Preview'}
                </button>
 
-               {viewMode === 'html' && articleContent && (
+               {(articleContent || seoData) && (
                   <button 
                     onClick={handleCopy}
                     className="px-4 py-1.5 bg-brand-success text-white rounded text-[11px] font-bold uppercase tracking-wider flex items-center gap-2 hover:opacity-90 transition-all border border-brand-success"
                   >
                     {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-                    {copied ? 'Berhasil' : 'Copy HTML'}
+                    {copied ? 'Berhasil' : 'Copy All Results'}
                   </button>
                )}
             </div>
@@ -268,25 +281,58 @@ export default function App() {
                    <p className="max-w-xs text-xs mt-3 leading-relaxed">Masukkan kata kunci utama dan subjudul pada panel kiri untuk mulai menyusun pilar konten berkualitas tinggi.</p>
                 </div>
              ) : (
-                <div className="flex-1 overflow-y-auto p-12 scroll-smooth bg-white">
-                   <div className="max-w-3xl mx-auto py-10">
-                      {viewMode === 'preview' ? (
-                        <article className="markdown-body prose lg:prose-xl max-w-none">
-                           <ReactMarkdown>{articleContent}</ReactMarkdown>
-                        </article>
-                      ) : (
-                        <div className="bg-slate-900 rounded-xl p-8 overflow-hidden border border-slate-800 shadow-2xl">
-                          <div className="flex items-center justify-between mb-6 border-b border-white/5 pb-4">
-                            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Source Code (HTML)</span>
-                            <div className="flex gap-1.5">
-                              <div className="w-2.5 h-2.5 rounded-full bg-red-500/20" />
-                              <div className="w-2.5 h-2.5 rounded-full bg-yellow-500/20" />
-                              <div className="w-2.5 h-2.5 rounded-full bg-green-500/20" />
+                <div className="flex-1 overflow-y-auto p-12 scroll-smooth bg-slate-50">
+                   <div className="max-w-4xl mx-auto space-y-8 pb-20">
+                      {/* Section 1: Article Content */}
+                      <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden transition-all">
+                        <div className="p-12">
+                          {viewMode === 'preview' ? (
+                            <article className="markdown-body prose lg:prose-xl max-w-none">
+                               <ReactMarkdown>{articleContent}</ReactMarkdown>
+                            </article>
+                          ) : (
+                            <div className="bg-slate-900 rounded-xl p-8 overflow-hidden border border-slate-800 shadow-2xl">
+                              <div className="flex items-center justify-between mb-6 border-b border-white/5 pb-4">
+                                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Source Code (HTML)</span>
+                                <div className="flex gap-1.5">
+                                  <div className="w-2.5 h-2.5 rounded-full bg-red-500/20" />
+                                  <div className="w-2.5 h-2.5 rounded-full bg-yellow-500/20" />
+                                  <div className="w-2.5 h-2.5 rounded-full bg-green-500/20" />
+                                </div>
+                              </div>
+                              <pre className="font-mono text-sm text-brand-success/90 whitespace-pre-wrap break-all leading-relaxed">
+                                {String(marked.parse(articleContent))}
+                              </pre>
                             </div>
-                          </div>
-                          <pre className="font-mono text-sm text-brand-success/90 whitespace-pre-wrap break-all leading-relaxed">
-                            {String(marked.parse(articleContent))}
-                          </pre>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Section 2: SEO Data */}
+                      {seoData && (
+                        <div className="bg-blue-50/50 border border-blue-100 rounded-2xl p-10 shadow-sm animate-in fade-in slide-in-from-bottom-4 duration-700">
+                           <div className="flex justify-between items-start mb-6">
+                              <div>
+                                <h3 className="text-blue-900 font-extrabold text-lg uppercase tracking-wider">DATA SEO YANG DIBUTUHKAN</h3>
+                                <p className="text-blue-600/60 text-xs mt-1 font-medium">Data ini siap untuk ditempel ke spreadsheet atau CMS Anda.</p>
+                              </div>
+                              <button 
+                                onClick={() => {
+                                  navigator.clipboard.writeText(seoData);
+                                  setCopied(true);
+                                  setTimeout(() => setCopied(false), 2000);
+                                }}
+                                className="px-4 py-2 bg-white border border-blue-200 text-blue-600 rounded-lg text-[11px] font-bold uppercase flex items-center gap-2 hover:bg-blue-50 transition-all shadow-sm"
+                              >
+                                <Copy className="w-3.5 h-3.5" />
+                                {copied ? 'BERHASIL' : 'Salin Data SEO (TXT)'}
+                              </button>
+                           </div>
+                           <div className="bg-white border border-blue-100 p-6 rounded-xl overflow-x-auto shadow-inner">
+                              <div className="markdown-body prose-sm prose-blue text-slate-700 min-w-[600px]">
+                                 <ReactMarkdown>{seoData}</ReactMarkdown>
+                              </div>
+                           </div>
                         </div>
                       )}
                       
