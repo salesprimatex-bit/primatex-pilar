@@ -1,49 +1,32 @@
-import React, { useState, useEffect } from 'react';
-import {
-  Construction,
-  Search,
-  FileText,
-  Link as LinkIcon,
-  Plus,
-  X,
-  Play,
-  Copy,
-  Check,
-  Loader2,
+import React, { useState, useEffect, useRef } from 'react';
+import { 
+  Construction, 
+  Search, 
+  FileText, 
+  Link as LinkIcon, 
+  Plus, 
+  X, 
+  Play, 
+  Copy, 
+  Check, 
+  Loader2, 
   AlertCircle,
   FileSearch,
   ChevronRight,
   ChevronDown
 } from 'lucide-react';
-import { motion } from 'motion/react';
+import { motion, AnimatePresence } from 'motion/react';
 import ReactMarkdown from 'react-markdown';
 import { marked } from 'marked';
 import { cn } from './lib/utils';
 import { generateArticleSection, generateSEOData, type ArticleInput } from './services/geminiService';
 
-const EMPTY_KEYWORDS = Array(10).fill('');
-
-function readQueryData() {
-  const params = new URLSearchParams(window.location.search);
-
-  const frasa = params.get('frasa')?.trim() || '';
-  const anchorText = params.get('anchor_text')?.trim() || '';
-  const url = params.get('url')?.trim() || '';
-
-  const keywords = Array.from({ length: 10 }, (_, i) => {
-    const key = params.get(`anchor${i + 1}`)?.trim();
-    return key || '';
-  });
-
-  return { frasa, anchorText, url, keywords };
-}
-
 export default function App() {
   const [b2, setB2] = useState('');
   const [r2, setR2] = useState('');
   const [b3, setB3] = useState('');
-  const [supportingKeywords, setSupportingKeywords] = useState<string[]>(EMPTY_KEYWORDS);
-
+  const [supportingKeywords, setSupportingKeywords] = useState<string[]>(Array(10).fill(''));
+  
   const [isGenerating, setIsGenerating] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
   const [generationProgress, setGenerationProgress] = useState(0);
@@ -53,22 +36,7 @@ export default function App() {
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
 
-  const totalSteps = supportingKeywords.length + 3;
-
-  useEffect(() => {
-    const applyUrlData = () => {
-      const { frasa, anchorText, url, keywords } = readQueryData();
-
-      setB3(frasa);
-      setB2(anchorText);
-      setR2(url);
-      setSupportingKeywords(keywords.length === 10 ? keywords : EMPTY_KEYWORDS);
-    };
-
-    applyUrlData();
-    window.addEventListener('popstate', applyUrlData);
-    return () => window.removeEventListener('popstate', applyUrlData);
-  }, []);
+  const totalSteps = supportingKeywords.length + 3; // Intro + 10 Keywords + FAQ + Conclusion
 
   const handleSupportKeywordChange = (index: number, value: string) => {
     const newKeywords = [...supportingKeywords];
@@ -105,58 +73,46 @@ export default function App() {
     let fullContent = `# ${b3}\n\n`;
 
     try {
+      // Step 1: Intro
       setCurrentStep(1);
-      const intro = await generateArticleSection(
-        input,
-        'Pendahuluan',
-        'Pentingnya produk ini dalam proyek konstruksi modern.',
-        true
-      );
-      fullContent += intro + '\n\n';
+      const intro = await generateArticleSection(input, "Pendahuluan", "Pentingnya produk ini dalam proyek konstruksi modern.", true);
+      fullContent += intro + "\n\n";
       setArticleContent(fullContent);
       setGenerationProgress((1 / totalSteps) * 100);
 
+      // Step 2-11: H2 Sections
       for (let i = 0; i < supportingKeywords.length; i++) {
         setCurrentStep(i + 2);
         const section = await generateArticleSection(
-          input,
-          supportingKeywords[i],
+          input, 
+          supportingKeywords[i], 
           `Pembahasan mendalam tentang ${supportingKeywords[i]} dalam konteks proyek.`
         );
-        fullContent += section + '\n\n';
+        fullContent += section + "\n\n";
         setArticleContent(fullContent);
         setGenerationProgress(((i + 2) / totalSteps) * 100);
       }
 
+      // Step 12: FAQ
       setCurrentStep(totalSteps - 1);
-      const faq = await generateArticleSection(
-        input,
-        'Pertanyaan yang Sering Diajukan (FAQ)',
-        'FAQ Teknis Produk',
-        false,
-        true
-      );
-      fullContent += faq + '\n\n';
+      const faq = await generateArticleSection(input, "Pertanyaan yang Sering Diajukan (FAQ)", "FAQ Teknis Produk", false, true);
+      fullContent += faq + "\n\n";
       setArticleContent(fullContent);
       setGenerationProgress(((totalSteps - 1) / totalSteps) * 100);
 
+      // Step 13: Conclusion
       setCurrentStep(totalSteps);
-      const conclusion = await generateArticleSection(
-        input,
-        'Kesimpulan',
-        'Ringkasan dan Solusi Produk Primatex',
-        false,
-        false,
-        true
-      );
-      fullContent += conclusion + '\n\n';
+      const conclusion = await generateArticleSection(input, "Kesimpulan", "Ringkasan dan Solusi Produk Primatex", false, false, true);
+      fullContent += conclusion + "\n\n";
       setArticleContent(fullContent);
       setGenerationProgress(95);
 
+      // Step 14: SEO Data
       setCurrentStep(totalSteps + 1);
       const seo = await generateSEOData(fullContent, b3);
       setSeoData(seo);
       setGenerationProgress(100);
+
     } catch (err: any) {
       setError(err.message || 'Terjadi kesalahan saat pembuatan artikel.');
     } finally {
@@ -169,9 +125,14 @@ export default function App() {
       {/* Sidebar - Settings */}
       <aside className="w-[280px] bg-brand-sidebar text-white flex flex-col shrink-0 h-screen sticky top-0 overflow-y-auto z-20">
         <div className="p-8 pb-10">
-          <div className="flex items-center gap-3 font-bold text-lg tracking-tight mb-10">
-            <div className="w-3.5 h-3.5 bg-brand-accent rounded-[2px]" />
-            Primatex Pilar
+          <div className="flex items-center gap-2 mb-10">
+            <div className="w-9 h-9 bg-black rounded-xl flex items-center justify-center">
+              <FileText className="w-5 h-5 text-white" />
+            </div>
+            <div className="text-lg tracking-tight">
+              <span className="font-bold text-white">Primatex</span>
+              <span className="text-slate-400 font-normal ml-1.5 text-base">Pilar SEO Engine</span>
+            </div>
           </div>
 
           <div className="space-y-10">
